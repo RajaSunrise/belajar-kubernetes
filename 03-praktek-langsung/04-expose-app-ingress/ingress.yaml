@@ -1,0 +1,27 @@
+# ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-k8s-ingress
+  annotations:
+    # Anotasi mungkin diperlukan tergantung Ingress Controller Anda
+    # Contoh untuk Nginx Ingress jika path bukan root:
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  # Penting: Sesuaikan dengan Ingress Class yang tersedia di cluster Anda
+  # Gunakan 'kubectl get ingressclass' untuk melihat yang tersedia
+  # Jika menggunakan Nginx Ingress dari Helm/Minikube addon, biasanya 'nginx'
+  # Jika K3s/Traefik default, mungkin tidak perlu (cek dokumentasi Traefik CRD)
+  # Jika Docker Desktop, 'nginx'
+  ingressClassName: nginx # GANTI JIKA PERLU
+  rules:
+  # Tidak ada host spesifik, akan cocok untuk semua host (atau IP Ingress Controller)
+  - http:
+      paths:
+      - path: / # Cocokkan path root
+        pathType: Prefix # Tipe pencocokan (Prefix atau Exact)
+        backend:
+          service:
+            name: hello-k8s-service # Nama Service target
+            port:
+              number: 80 # Port Service target (port 80 di Service kita)

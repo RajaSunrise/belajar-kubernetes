@@ -1,0 +1,26 @@
+# ingress-tls.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-k8s-ingress # Nama yang sama akan memperbarui Ingress yg ada
+  annotations:
+    # Anotasi mungkin diperlukan tergantung Ingress Controller Anda
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Anotasi lain mungkin: nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx # GANTI JIKA PERLU
+  tls: # <-- Tambahkan bagian TLS
+  - hosts:
+    - hello-k8s.local # Host yang diamankan (harus cocok dgn CN cert & rule host)
+    secretName: hello-k8s-tls-secret # Nama Secret TLS yang dibuat
+  rules:
+  - host: hello-k8s.local # <-- Tambahkan host di sini
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hello-k8s-service
+            port:
+              number: 80
