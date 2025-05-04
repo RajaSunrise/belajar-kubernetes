@@ -1,0 +1,57 @@
+# statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-sts # Nama StatefulSet
+spec:
+  serviceName: "postgres-headless" # <--- Harus cocok dengan nama Headless Service
+  replicas: 2 # Mulai dengan 2 replika (mis: master & standby)
+  selector:
+    matchLabels:
+      app: postgres # <--- Harus cocok dengan selector Service & label template Pod
+  template: # Template untuk Pods
+    metadata:
+      labels:
+        app: postgres # Label Pod
+    spec:
+      terminationGracePeriodSeconds: 10 # Waktu tunggu sebelum force kill
+      containers:
+      - name: postgres
+        image: postgres:14 # Gunakan image PostgreSQL
+        ports:
+        - containerPort: 5432
+          name: postgresdb
+        env:
+        - name: POSTGRES_USER
+          value: "myuser" # Atau ambil dari Secret jika perlu
+        - name: POSTGRES_DB
+          value: "mydatabase"
+        - name: PGDATA # Lokasi data PostgreSQL di dalam kontainer
+          value: /var/lib/postgresql/data/pgdata
+        # Ambil password dari Secret yang kita buat sebelumnya
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pg-secret # Nama Secret
+              key: POSTGRES_PASSWORD # Key di dalam Secret
+        volumeMounts:
+        - name: postgres-data # Nama mount (harus cocok dgn nama volumeClaimTemplates)
+          mountPath: /var/lib/postgresql/data # Mount point untuk data PG
+        # Readiness probe sederhana (bisa lebih canggih)
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "myuser", "-d", "mydatabase"]
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 10
+  # --- Template untuk membuat PVC secara otomatis ---
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data # Nama dasar untuk PVC (akan ditambahkan -<sts-name>-<ordinal>)
+    spec:
+      accessModes: [ "ReadWriteOnce" ] # Mode akses (cocok untuk database)
+      # --- PENTING: Ganti nama StorageClass ini jika SC default Anda berbeda ---
+      storageClassName: "standard" # Nama StorageClass yang berfungsi di cluster Anda
+      resources:
+        requests:
+          storage: 2Gi # Ukuran volume persisten per Pod

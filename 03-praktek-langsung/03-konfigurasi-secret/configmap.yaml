@@ -1,0 +1,20 @@
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  # Key-value pairs sederhana
+  LOG_LEVEL: "info"
+  API_ENDPOINT: "https://api.example.com/v1"
+  FEATURE_FLAG_BETA: "true"
+
+  # Mensimulasikan seluruh konten file konfigurasi
+  app-settings.conf: |
+    # Ini adalah contoh file konfigurasi
+    # yang disimpan dalam satu key ConfigMap.
+    color.theme = dark
+    retry.count = 3
+    timeout.seconds = 15
+
+  another-file.txt: "Ini konten file teks lain."

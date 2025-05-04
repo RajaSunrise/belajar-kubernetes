@@ -1,0 +1,35 @@
+# pod-env.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-using-env
+spec:
+  containers:
+  - name: main-container
+    image: busybox:1.28 # Image sederhana untuk demo
+    # Perintah untuk tidur selamanya agar Pod tetap berjalan
+    command: [ "/bin/sh", "-c", "while true; do echo 'Running...'; sleep 3600; done" ]
+    env: # Mendefinisikan variabel lingkungan satu per satu
+      # Mengambil nilai spesifik dari ConfigMap
+      - name: APP_LOG_LEVEL # Nama env var di kontainer
+        valueFrom:
+          configMapKeyRef:
+            name: app-config # Nama ConfigMap
+            key: LOG_LEVEL   # Key di dalam ConfigMap
+      # Mengambil nilai spesifik dari Secret
+      - name: SECRET_API_KEY # Nama env var
+        valueFrom:
+          secretKeyRef:
+            name: api-credentials # Nama Secret
+            key: API_KEY        # Key di dalam Secret
+
+    envFrom: # Menyuntikkan SEMUA key dari ConfigMap/Secret sebagai env vars
+      # Menyuntikkan semua key dari ConfigMap
+      - configMapRef:
+          name: app-config # Nama ConfigMap
+      # Menyuntikkan semua key dari Secret
+      - secretRef:
+          name: api-credentials # Nama Secret
+          # Opsional: Tambahkan prefix ke nama env var yang disuntikkan
+          # prefix: "CREDS_"
+  restartPolicy: Never

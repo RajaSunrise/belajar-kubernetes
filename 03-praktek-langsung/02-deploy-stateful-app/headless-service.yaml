@@ -1,0 +1,14 @@
+# headless-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless # Nama penting, akan digunakan di StatefulSet
+  labels:
+    app: postgres # Label untuk Service (opsional)
+spec:
+  ports:
+  - port: 5432
+    name: postgresdb
+  clusterIP: None # <-- Ini menjadikannya Headless Service
+  selector:
+    app: postgres # <-- Harus cocok dengan label Pods StatefulSet

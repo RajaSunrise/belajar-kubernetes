@@ -1,0 +1,15 @@
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-k8s-service # Nama Service
+  labels:
+    app: hello-k8s # Label Service (opsional)
+spec:
+  selector:
+    app: hello-k8s # PENTING: Harus cocok dengan label Pods
+  type: ClusterIP # Hanya internal cluster
+  ports:
+    - protocol: TCP
+      port: 80 # Port yang akan diekspos Service (port akses internal)
+      targetPort: http # Nama port kontainer (merujuk ke port 5000)

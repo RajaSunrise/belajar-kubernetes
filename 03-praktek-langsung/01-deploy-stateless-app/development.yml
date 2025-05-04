@@ -1,0 +1,48 @@
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-k8s-deployment # Nama Deployment
+  labels:
+    app: hello-k8s # Label untuk Deployment
+spec:
+  replicas: 2 # Kita mulai dengan 2 replika Pod
+  selector:
+    matchLabels:
+      app: hello-k8s # Selector ini akan menemukan Pods dengan label 'app: hello-k8s'
+  template: # Ini adalah blueprint untuk Pods yang akan dibuat
+    metadata:
+      labels:
+        app: hello-k8s # Label untuk Pods (harus cocok dengan selector)
+    spec:
+      containers:
+      - name: hello-k8s-container
+        # --- PASTIKAN NAMA IMAGE INI SESUAI DENGAN YANG ANDA BANGUN/SEDIAKAN ---
+        image: hello-k8s-app:v1.0 # Default jika menggunakan Metode A (load lokal)
+        # Contoh jika Metode B (registry): image: your-dockerhub-username/hello-k8s-app:v1.0
+        # imagePullPolicy: Always # Aktifkan jika perlu pull ulang dari registry
+        ports:
+        - containerPort: 5000 # Port yang diekspos aplikasi Flask
+          name: http
+        env: # Tambahkan environment variable untuk versi
+        - name: APP_VERSION
+          value: "v1.0" # Sesuaikan ini saat update image
+        resources: # Praktik baik: selalu tentukan resource
+          requests:
+            cpu: "100m"    # 0.1 CPU
+            memory: "64Mi" # 64 Megabytes
+          limits:
+            cpu: "200m"    # 0.2 CPU
+            memory: "128Mi" # 128 Megabytes
+        readinessProbe: # Cek apakah aplikasi siap melayani traffic
+          httpGet:
+            path: / # Endpoint yang akan dicek
+            port: 5000
+          initialDelaySeconds: 5 # Tunggu 5 detik sebelum probe pertama
+          periodSeconds: 10 # Cek setiap 10 detik
+        livenessProbe: # Cek apakah aplikasi masih hidup
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20

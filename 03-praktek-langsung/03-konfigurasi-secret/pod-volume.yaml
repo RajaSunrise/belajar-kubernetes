@@ -1,0 +1,41 @@
+# pod-volume.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-using-volume
+spec:
+  containers:
+  - name: main-container
+    image: busybox:1.28
+    command: [ "/bin/sh", "-c", "while true; do echo 'Inspecting volumes...'; sleep 60; done" ]
+    volumeMounts: # Mendefinisikan di mana volume akan di-mount di kontainer
+      # Mount untuk ConfigMap
+      - name: config-vol # Nama mount harus cocok dengan nama volume di bawah
+        mountPath: "/etc/config" # Direktori mount di kontainer
+        # readOnly: true # Opsional
+      # Mount untuk Secret
+      - name: secret-vol
+        mountPath: "/etc/secrets"
+        readOnly: true # Praktik terbaik untuk mount secret read-only
+
+  volumes: # Mendefinisikan volume yang akan tersedia untuk Pod
+    # Volume dari ConfigMap
+    - name: config-vol # Nama volume
+      configMap:
+        name: app-config # Nama ConfigMap yang akan di-mount
+        # Opsional: Pilih key mana yang akan di-mount sebagai file
+        # items:
+        # - key: API_ENDPOINT
+        #   path: api_url.txt # Nama file di dalam mountPath
+        # - key: app-settings.conf
+        #   path: settings.ini
+        # Jika 'items' tidak ditentukan, semua key menjadi nama file.
+    # Volume dari Secret
+    - name: secret-vol
+      secret:
+        secretName: api-credentials # Nama Secret yang akan di-mount
+        # items: ... # Anda juga bisa memilih key spesifik di sini
+        # Opsional: Atur mode izin file (default 0644)
+        # defaultMode: 0400 # Contoh: Hanya bisa dibaca oleh pemilik
+
+  restartPolicy: Never
